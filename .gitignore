@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+
+# IDE files (IntelliJ 예시)
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Sensitive files (실제 사용 시 추가)
+# credentials.properties
