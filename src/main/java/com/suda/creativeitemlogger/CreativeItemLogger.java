@@ -67,19 +67,30 @@ public class CreativeItemLogger extends JavaPlugin implements Listener {
         saveConfig();
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!enableLogging) return;
         
         if (!(event.getWhoClicked() instanceof Player)) return;
         
         Player player = (Player) event.getWhoClicked();
+        
+        // 제외된 플레이어 확인
+        List<String> exemptPlayers = getConfig().getStringList("exempt-players");
+        if (exemptPlayers.contains(player.getName())) return;
+        
+        // 월드 확인
+        List<String> worlds = getConfig().getStringList("worlds");
+        if (!worlds.isEmpty() && !worlds.contains(player.getWorld().getName())) return;
+        
         if (player.getGameMode() != GameMode.CREATIVE) return;
         
         // 마우스 휠 클릭 확인
         if (event.getClick() == ClickType.MIDDLE) {
             ItemStack clickedItem = event.getCurrentItem();
             if (clickedItem != null && !clickedItem.getType().isAir()) {
+                // 로그 추가
+                getLogger().info("middle click event detected from " + player.getName() + " on " + clickedItem.getType());
                 logItemCopy(player, clickedItem);
             }
         }
@@ -103,7 +114,14 @@ public class CreativeItemLogger extends JavaPlugin implements Listener {
                 .replace("%amount%", String.valueOf(amount))
                 .replace("%time%", timestamp);
             
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), formattedCommand);
+            getLogger().info("Executing command: " + formattedCommand);
+            try {
+                boolean success = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), formattedCommand);
+                getLogger().info("Command execution success: " + success);
+            } catch (Exception e) {
+                getLogger().warning("Error executing command: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 }
